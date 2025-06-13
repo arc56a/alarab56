@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة آلُــــعـــرآبـــ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define the 'Inter' font, fallback to sans-serif if not available */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Ensure the body takes full viewport height for video background */
+            min-height: 100vh;
+            display: flex; /* Use flexbox to center content */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            overflow: hidden; /* Hide overflow to prevent scrollbars from video */
+        }
+        /* Custom styles for the video background */
+        .video-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the video covers the entire area */
+            z-index: -1; /* Puts the video behind other content */
+        }
+        /* Custom styles for the profile content container */
+        .profile-content-container {
+            z-index: 1; /* Puts content above the video */
+            text-align: center; /* Center text and inline elements */
+            background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background for readability */
+            padding: 1.5rem; /* Adjusted padding for smaller card */
+            border-radius: 1.5rem; /* Rounded corners for the container */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items within the column */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Slightly adjusted shadow */
+        }
+        /* Base size for profile image and text, suitable for mobile-first approach */
+        .profile-image {
+            width: 8rem; /* Adjusted for better mobile sizing */
+            height: 8rem;
+        }
+        .profile-text {
+            font-size: 2.25rem; /* Adjusted for better mobile sizing (text-4xl equivalent) */
+            color: #ef4444; /* Tailwind red-500 equivalent for the name text color */
+            /* "Bat effect": subtle dark shadow to give a dramatic look */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), -2px -2px 4px rgba(0, 0, 0, 0.7);
+            margin-bottom: 0.5rem; /* Small margin to separate from username */
+        }
+        .username-link {
+            font-size: 1rem; /* Base size for username (text-base) */
+            color: #ffffff; /* White color */
+            text-decoration: none; /* No underline */
+            margin-top: 0; /* No top margin as profile-text already has bottom margin */
+            margin-bottom: 1.5rem; /* Margin to separate from phrase section */
+        }
+        .username-link:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
+        /* Style for the phrase section container */
+        .phrase-section-container {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 1.5rem 1rem; /* Vertical and horizontal padding */
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            margin-top: 2rem; /* Space between profile card and phrase section */
+            z-index: 1; /* Ensure it's above the video */
+        }
+        /* Style for the viewer count text */
+        .viewer-count-text {
+            font-size: 1.5rem; /* Increased size for better visibility */
+            color: #f3f4f6; /* gray-100 */
+            margin-top: 2rem; /* Space between phrase section and viewer count */
+            z-index: 1; /* Ensure it's above the video */
+            display: flex; /* Use flexbox to align icon and text */
+            align-items: center; /* Vertically center icon and text */
+            justify-content: center; /* Horizontally center icon and text */
+            gap: 0.5rem; /* Space between the eye icon and the number */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle shadow for readability */
+        }
+
+        /* Adjustments for smaller screens (e.g., very small phones) */
+        @media (max-width: 480px) { /* Changed breakpoint for finer mobile control */
+            .profile-content-container {
+                padding: 1rem; /* Even less padding on very small screens */
+            }
+            .profile-image {
+                width: 6rem; /* Smaller image on very small mobile */
+                height: 6rem;
+            }
+            .profile-text {
+                font-size: 1.5rem; /* Smaller text on very small mobile (text-2xl equivalent) */
+            }
+            .username-link {
+                font-size: 0.875rem; /* Smaller text on very small mobile (text-sm equivalent) */
+                margin-bottom: 1rem; /* Reduced margin for smaller screens */
+            }
+            /* Adjust phrase size for very small screens */
+            #dynamic-phrase {
+                font-size: 0.875rem; /* text-sm */
+            }
+            .phrase-section-container {
+                padding: 1rem 0.75rem;
+                margin-top: 1.5rem; /* Reduce margin for smaller screens */
+            }
+            .viewer-count-text {
+                font-size: 1.25rem; /* Smaller text on very small mobile */
+                margin-top: 1.5rem;
+            }
+        }
+
+        /* Settings button specific styles */
+        .settings-button {
+            position: absolute;
+            top: 1rem; /* Adjust as needed for spacing from top */
+            right: 1rem; /* Adjust as needed for spacing from right */
+            z-index: 10; /* Ensure it's on top of everything */
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.75rem; /* Rounded corners */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .settings-button:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Dropdown menu specific styles */
+        .settings-dropdown {
+            position: absolute;
+            top: 4.5rem; /* Position below the button, adjust based on button size */
+            right: 1rem; /* Align with the button */
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 9; /* Slightly lower than button but still on top */
+            min-width: 150px; /* Minimum width for readability */
+            overflow: hidden; /* Ensures rounded corners apply to content */
+        }
+        .settings-dropdown ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .settings-dropdown li {
+            padding: 0.75rem 1rem;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .settings-dropdown li:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .settings-dropdown li:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separator between items */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <!-- Video Background -->
+    <video id="background-video" autoplay loop muted playsinline class="video-background">
+        <source src="https://j.top4top.io/m_3450lreic0.mp4" type="video/mp4">
+        متصفحك لا يدعم تشغيل الفيديو.
+        <!-- Fallback message if video cannot be played -->
+    </video>
+
+    <!-- Settings Button -->
+    <button id="settings-btn" class="settings-button">
+        <!-- SVG for a gear icon (settings) -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.22a2 2 0 0 0 .73 2.73l.09.09a2 2 0 0 1 0 2.83l-.09.09a2 2 0 0 0-.73 2.73l.78 1.22a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.22a2 2 0 0 0-.73-2.73l-.09-.09a2 2 0 0 1 0-2.83l.09-.09a2 2 0 0 0 .73-2.73l-.78-1.22a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </svg>
+    </button>
+
+    <!-- Settings Dropdown Menu -->
+    <div id="settings-dropdown" class="settings-dropdown hidden">
+        <ul>
+            <li id="change-background-btn">تغيير الخلفية</li>
+            <li id="toggle-music-btn">إيقاف الموسيقى</li>
+            <li id="toggle-content-btn">الشاشة الخالية</li>
+            <li id="toggle-profile-btn">إخفاء البروفايل</li>
+            <li id="toggle-phrases-btn">إخفاء العبارات</li>
+            <li id="toggle-viewers-btn">إخفاء المشاهدات</li>
+        </ul>
+    </div>
+
+    <!-- Main Content Wrapper (centered by body's flexbox) -->
+    <div id="main-content-wrapper" class="flex flex-col items-center justify-center p-4 w-full h-full">
+
+        <!-- Profile Card Content -->
+        <div id="profile-card" class="profile-content-container max-w-sm">
+            <!-- Profile Image -->
+            <img
+                src="https://l.top4top.io/p_345086ryb0.jpg"
+                alt="صورة الملف الشخصي"
+                class="profile-image rounded-full border-4 border-red-700 shadow-lg object-cover mb-6"
+                onerror="this.onerror=null;this.src='https://placehold.co/128x128/000000/FFFFFF?text=خطأ';"
+            />
+
+            <!-- Profile Name Text -->
+            <p class="profile-text font-bold tracking-wide leading-tight">
+                آلُــــعـــرآبـــ ⁵⁶
+            </p>
+
+            <!-- Instagram Username Link -->
+            <a
+                href="https://www.instagram.com/ar_c56?igsh=cWpudDJueTNqNjRj"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="username-link"
+            >
+                @ar_c56
+            </a>
+        </div>
+
+        <!-- Dynamic Phrase and Button Container -->
+        <div id="phrase-card" class="phrase-section-container flex flex-col items-center max-w-sm mx-auto">
+            <!-- Dynamic Phrase -->
+            <p id="dynamic-phrase" class="text-xl md:text-2xl text-gray-200 text-center mb-6">
+                <!-- Initial phrase will be set by JavaScript -->
+            </p>
+            <!-- Change Phrase Button -->
+            <button id="change-phrase-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-full shadow-md transition duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+                تغيير العبارة
+            </button>
+        </div>
+
+        <!-- Viewer Count Section -->
+        <p id="viewer-count-text" class="viewer-count-text font-medium">
+            <!-- Eye icon SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span id="viewer-number">5670</span> <!-- Span for the number itself -->
+        </p>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="background-music" autoplay loop>
+        <source src="https://k.top4top.io/m_3451qxti51.mp3" type="audio/mpeg">
+        متصفحك لا يدعم تشغيل الصوت.
+    </audio>
+
+    <!-- JavaScript for dynamic phrase change and settings -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Elements References ---
+            const dynamicPhraseElement = document.getElementById('dynamic-phrase');
+            const changePhraseButton = document.getElementById('change-phrase-btn');
+            const audio = document.getElementById('background-music');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsDropdown = document.getElementById('settings-dropdown');
+            const toggleMusicBtn = document.getElementById('toggle-music-btn');
+            const toggleContentBtn = document.getElementById('toggle-content-btn');
+            const mainContentWrapper = document.getElementById('main-content-wrapper');
+            const viewerCountText = document.getElementById('viewer-count-text');
+            const viewerNumberSpan = document.getElementById('viewer-number');
+            const backgroundVideo = document.getElementById('background-video'); // Reference to the video element
+
+            // New element references for individual toggles
+            const profileCard = document.getElementById('profile-card');
+            const phraseCard = document.getElementById('phrase-card');
+            const toggleProfileBtn = document.getElementById('toggle-profile-btn');
+            const togglePhrasesBtn = document.getElementById('toggle-phrases-btn');
+            const toggleViewersBtn = document.getElementById('toggle-viewers-btn');
+            const changeBackgroundBtn = document.getElementById('change-background-btn'); // Reference for new button
+
+            // --- Phrases Array ---
+            const phrases = [
+                "نگدر نواسي الكل إلا نفسنة",
+                "لا تطفئ نورك لإرضاء عتمتهم",
+                "أنا اهرب من هروبي أين النهايه؟",
+                "عشان توصل الي أنت عايزة لازم تتحمل الي أنت مش عايزة",
+                "خالط ولا تذوب",
+                "تساقط مني الرفاق والأيام والأحلام وأنا",
+                "يؤلمني شيء لا أعرفه ربما وداع قديم لم أبكيه"
+            ];
+            let currentPhraseIndex = 0;
+            let isContentVisible = true; // State for 'الشاشة الخالية'
+            // States for individual sections
+            let isProfileVisible = true;
+            let isPhrasesVisible = true;
+            let isViewersVisible = true;
+
+            // --- Background Videos Array ---
+            const backgroundVideos = [
+                "https://j.top4top.io/m_3450lreic0.mp4", // Original
+                "https://f.top4top.io/m_34516072o0.mp4",
+                "https://g.top4top.io/m_3451agi751.mp4",
+                "https://h.top4top.io/m_3451zzy5o2.mp4",
+                "https://e.top4top.io/m_3451pcjzn0.mp4",
+                "https://f.top4top.io/m_34510i14s1.mp4",
+                "https://j.top4top.io/m_34517zw6x4.mp4"
+            ];
+            let currentVideoIndex = 0; // Start with the first video in the array
+
+            // --- Viewer Count Logic ---
+            const VIEWER_COUNT_KEY = 'viewerCount';
+            const LAST_UPDATE_TIME_KEY = 'lastUpdateTime';
+            const INITIAL_VIEWER_COUNT = 5670;
+            const INCREMENT_AMOUNT = 50;
+            const INCREMENT_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+
+            let currentViewerCount;
+            let lastUpdateTime;
+
+            // Initialize viewer count and last update time
+            function initializeViewerCount() {
+                const savedCount = localStorage.getItem(VIEWER_COUNT_KEY);
+                const savedTime = localStorage.getItem(LAST_UPDATE_TIME_KEY);
+                const now = Date.now();
+
+                if (savedCount && savedTime) {
+                    currentViewerCount = parseInt(savedCount, 10);
+                    lastUpdateTime = parseInt(savedTime, 10);
+
+                    // Calculate increments based on time passed since last update
+                    const timeDifference = now - lastUpdateTime;
+                    const intervalsPassed = Math.floor(timeDifference / INCREMENT_INTERVAL_MS);
+
+                    if (intervalsPassed > 0) {
+                        currentViewerCount += intervalsPassed * INCREMENT_AMOUNT;
+                        lastUpdateTime = now; // Update last update time to now
+                        saveViewerCount();
+                    }
+                } else {
+                    currentViewerCount = INITIAL_VIEWER_COUNT;
+                    lastUpdateTime = now;
+                    saveViewerCount();
+                }
+                updateViewerCountDisplay();
+            }
+
+            // Save viewer count and last update time to local storage
+            function saveViewerCount() {
+                localStorage.setItem(VIEWER_COUNT_KEY, currentViewerCount);
+                localStorage.setItem(LAST_UPDATE_TIME_KEY, lastUpdateTime);
+            }
+
+            // Update the displayed viewer count
+            function updateViewerCountDisplay() {
+                viewerNumberSpan.textContent = currentViewerCount.toLocaleString('ar-EG'); // Update only the number span
+            }
+
+            // Increment viewer count automatically
+            function autoIncrementViewerCount() {
+                currentViewerCount += INCREMENT_AMOUNT;
+                lastUpdateTime = Date.now();
+                saveViewerCount();
+                updateViewerCountDisplay();
+            }
+
+            // --- Functions ---
+            function updatePhrase() {
+                dynamicPhraseElement.textContent = phrases[currentPhraseIndex];
+            }
+
+            // Function to change the background video
+            function changeBackgroundVideo() {
+                currentVideoIndex = (currentVideoIndex + 1) % backgroundVideos.length;
+                backgroundVideo.src = backgroundVideos[currentVideoIndex];
+                backgroundVideo.load(); // Reload the video to apply the new source
+                backgroundVideo.play().catch(e => console.error("Video play failed after source change:", e));
+                settingsDropdown.classList.add('hidden'); // Hide dropdown after selection
+            }
+
+
+            // Function to toggle settings dropdown visibility
+            function toggleSettingsDropdown() {
+                settingsDropdown.classList.toggle('hidden');
+            }
+
+            // Function to toggle music play/pause
+            function toggleMusic() {
+                if (audio.paused) {
+                    audio.play().catch(e => console.error("Audio play failed:", e));
+                    toggleMusicBtn.textContent = 'إيقاف الموسيقى';
+                } else {
+                    audio.pause();
+                    toggleMusicBtn.textContent = 'تشغيل الموسيقى';
+                }
+                settingsDropdown.classList.add('hidden'); // Hide dropdown after selection
+            }
+
+            // Function to toggle all content visible (for 'الشاشة الخالية' option)
+            function toggleContent() {
+                // If content is currently visible, hide everything
+                if (isContentVisible) {
+                    mainContentWrapper.classList.add('hidden'); // Hide the main wrapper
+                    toggleContentBtn.textContent = 'إظهار المحتوى';
+                    isContentVisible = false;
+                } else { // If content is currently hidden, show everything
+                    mainContentWrapper.classList.remove('hidden'); // Show the main wrapper
+                    // Ensure all individual components are also visible when main wrapper is shown
+                    profileCard.classList.remove('hidden');
+                    phraseCard.classList.remove('hidden');
+                    viewerCountText.classList.remove('hidden');
+
+                    // Reset individual states to visible and update button texts
+                    isProfileVisible = true;
+                    isPhrasesVisible = true;
+                    isViewersVisible = true;
+                    toggleProfileBtn.textContent = 'إخفاء البروفايل';
+                    togglePhrasesBtn.textContent = 'إخفاء العبارات';
+                    toggleViewersBtn.textContent = 'إخفاء المشاهدات';
+
+                    toggleContentBtn.textContent = 'الشاشة الخالية';
+                    isContentVisible = true;
+                }
+                settingsDropdown.classList.add('hidden'); // Hide dropdown after selection
+            }
+
+            // Functions to toggle individual sections
+            function toggleProfile() {
+                if (isContentVisible) { // Only toggle if main content wrapper is visible
+                    profileCard.classList.toggle('hidden');
+                    isProfileVisible = !isProfileVisible;
+                    toggleProfileBtn.textContent = isProfileVisible ? 'إخفاء البروفايل' : 'إظهار البروفايل';
+                }
+                settingsDropdown.classList.add('hidden');
+            }
+
+            function togglePhrases() {
+                if (isContentVisible) { // Only toggle if main content wrapper is visible
+                    phraseCard.classList.toggle('hidden');
+                    isPhrasesVisible = !isPhrasesVisible;
+                    togglePhrasesBtn.textContent = isPhrasesVisible ? 'إخفاء العبارات' : 'إظهار العبارات';
+                }
+                settingsDropdown.classList.add('hidden');
+            }
+
+            function toggleViewers() {
+                if (isContentVisible) { // Only toggle if main content wrapper is visible
+                    viewerCountText.classList.toggle('hidden');
+                    isViewersVisible = !isViewersVisible;
+                    toggleViewersBtn.textContent = isViewersVisible ? 'إخفاء المشاهدات' : 'إظهار المشاهدات';
+                }
+                settingsDropdown.classList.add('hidden');
+            }
+
+            // --- Event Listeners ---
+            // Initial phrase setup
+            updatePhrase();
+
+            // Initialize and start viewer count
+            initializeViewerCount();
+            // Set interval for automatic increment
+            setInterval(autoIncrementViewerCount, INCREMENT_INTERVAL_MS);
+
+            // Attempt to play audio on initial load (may be blocked by browsers)
+            audio.play().catch(e => console.log("Audio autoplay blocked, will try again on user interaction.", e));
+
+            // Change phrase button click
+            changePhraseButton.addEventListener('click', function() {
+                currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+                updatePhrase();
+                if (audio.paused) { // Try to play music if paused on user interaction
+                    audio.play().catch(e => console.error("Audio play failed on phrase change:", e));
+                }
+            });
+
+            // Settings button click to open/close dropdown
+            settingsBtn.addEventListener('click', toggleSettingsDropdown);
+
+            // Music toggle button click
+            toggleMusicBtn.addEventListener('click', toggleMusic);
+
+            // Content toggle button click (for 'الشاشة الخالية')
+            toggleContentBtn.addEventListener('click', toggleContent);
+
+            // New individual toggle button clicks
+            toggleProfileBtn.addEventListener('click', toggleProfile);
+            togglePhrasesBtn.addEventListener('click', togglePhrases);
+            toggleViewersBtn.addEventListener('click', toggleViewers);
+
+            // New background change button click
+            changeBackgroundBtn.addEventListener('click', changeBackgroundVideo);
+
+            // Close dropdown if clicked outside
+            document.addEventListener('click', function(event) {
+                if (!settingsBtn.contains(event.target) && !settingsDropdown.contains(event.target)) {
+                    settingsDropdown.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
