@@ -65,12 +65,23 @@
             }
         }
 
+        /* Username color change animation */
+        @keyframes usernameColorCycle {
+            0% { color: #ffffff; } /* White */
+            16.67% { color: #ff0000; } /* Red */
+            33.33% { color: #00ff00; } /* Green */
+            50% { color: #0000ff; } /* Blue */
+            66.67% { color: #ffd700; } /* Gold */
+            83.33% { color: #800080; } /* Purple */
+            100% { color: #ffffff; } /* White, for seamless loop */
+        }
         .username-link {
             font-size: 1rem; /* Base size for username (text-base) */
-            color: #ffffff; /* White color */
+            color: #ffffff; /* Default color */
             text-decoration: none; /* No underline */
             margin-top: 0; /* No top margin as profile-text already has bottom margin */
             margin-bottom: 1.5rem; /* Margin to separate from phrase section */
+            animation: usernameColorCycle 5s infinite alternate; /* Longer duration for more colors */
         }
         .username-link:hover {
             text-decoration: underline; /* Underline on hover */
@@ -183,13 +194,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
+            /* Modern gradient background */
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.98) 70%, rgba(0, 0, 0, 1) 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 50; /* Ensure it's on top */
-            transition: opacity 0.5s ease-out; /* Smooth transition */
+            transition: opacity 0.7s ease-out; /* Smooth transition */
         }
         .splash-screen.hidden {
             opacity: 0;
@@ -197,30 +209,55 @@
         }
 
         /* Animation for splash screen text */
-        @keyframes pulse {
+        @keyframes splashTextFadeGlow {
             0% {
-                transform: scale(1);
-                opacity: 1;
+                color: rgba(255, 255, 255, 0.6); /* White with transparency */
+                text-shadow: 0 0 3px rgba(255, 255, 255, 0.3), 0 0 6px rgba(255, 255, 255, 0.2); /* Smaller glow */
+                transform: scale(0.99); /* Slightly less aggressive pulse */
+                opacity: 0.8;
             }
             50% {
-                transform: scale(1.05);
-                opacity: 0.9;
+                color: rgba(255, 255, 255, 1); /* Full opaque white */
+                text-shadow: 0 0 8px rgba(255, 255, 255, 0.7), 0 0 12px rgba(255, 255, 255, 0.4), 0 0 18px rgba(255, 255, 255, 0.2); /* More pronounced glow */
+                transform: scale(1.01);
+                opacity: 1;
             }
             100% {
-                transform: scale(1);
-                opacity: 1;
+                color: rgba(255, 255, 255, 0.6);
+                text-shadow: 0 0 3px rgba(255, 255, 255, 0.3), 0 0 6px rgba(255, 255, 255, 0.2);
+                transform: scale(0.99);
+                opacity: 0.8;
             }
         }
         .splash-text {
-            animation: pulse 2s infinite alternate;
+            /* Adjusted font size for splash text */
+            font-size: 1rem; /* Smaller for mobile (approximately 1/3 of previous 2.5rem) */
+            line-height: 1.2;
+            animation: splashTextFadeGlow 3s infinite alternate; /* Slower, more elegant pulse with fade */
+            font-weight: 700; /* Make it bolder */
+            letter-spacing: 0.05em; /* Add slight letter spacing */
+            text-transform: uppercase; /* Optional: Make it uppercase */
+            text-align: center; /* Ensure text is centered */
+            max-width: 90%; /* Prevent text from being too wide on small screens */
+        }
+        @media (min-width: 768px) { /* Adjust for larger screens */
+            .splash-text {
+                font-size: 1.5rem; /* Smaller for desktop (approximately 1/3 of previous 4rem) */
+            }
+        }
+
+        /* Ensure the body blurs when splash screen is active */
+        body.splash-active .video-background {
+            filter: blur(5px);
+            transition: filter 0.7s ease-out;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-900 text-white splash-active">
 
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
-        <p class="text-white text-3xl md:text-5xl font-bold mb-8 splash-text">مرحباً بك في صفحة آلُــــعـــرآبـــ</p>
+        <p class="font-bold mb-8 splash-text">مرحباً بك في صفحة آلُــــعـــرآبـــ</p>
         <button id="enter-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
             الدخول إلى الصفحة
         </button>
@@ -419,10 +456,12 @@
             function toggleContent() {
                 if (isContentVisible) {
                     mainContentWrapper.classList.add('hidden');
+                    document.body.classList.remove('splash-active'); // Ensure blur is removed
                     toggleContentBtn.textContent = 'إظهار المحتوى';
                     isContentVisible = false;
                 } else {
                     mainContentWrapper.classList.remove('hidden');
+                    document.body.classList.remove('splash-active'); // Ensure blur is removed
                     // Ensure all individual components are also visible when main wrapper is shown
                     profileCard.classList.remove('hidden');
                     phraseCard.classList.remove('hidden');
@@ -478,6 +517,7 @@
                 splashScreen.classList.add('hidden'); // Hide splash screen
                 mainContentWrapper.classList.remove('hidden'); // Show main content
                 settingsBtn.classList.remove('hidden'); // Show settings button
+                document.body.classList.remove('splash-active'); // Remove blur from body
 
                 // Play music on user interaction
                 audio.play().catch(e => console.error("Audio play failed on enter:", e));
