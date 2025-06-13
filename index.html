@@ -51,7 +51,20 @@
             /* "Bat effect": subtle dark shadow to give a dramatic look */
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), -2px -2px 4px rgba(0, 0, 0, 0.7);
             margin-bottom: 0.5rem; /* Small margin to separate from username */
+            /* New: Pulsating glow animation */
+            animation: textGlow 2s infinite alternate;
         }
+
+        /* Keyframes for the pulsating text glow animation */
+        @keyframes textGlow {
+            0% {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), -2px -2px 4px rgba(0, 0, 0, 0.7), 0 0 5px #ef4444;
+            }
+            100% {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), -2px -2px 4px rgba(0, 0, 0, 0.7), 0 0 20px #ef4444, 0 0 30px #ef4444;
+            }
+        }
+
         .username-link {
             font-size: 1rem; /* Base size for username (text-base) */
             color: #ffffff; /* White color */
@@ -162,9 +175,56 @@
         .settings-dropdown li:not(:last-child) {
             border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separator between items */
         }
+
+        /* Splash screen styles */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50; /* Ensure it's on top */
+            transition: opacity 0.5s ease-out; /* Smooth transition */
+        }
+        .splash-screen.hidden {
+            opacity: 0;
+            pointer-events: none; /* Disable interaction when hidden */
+        }
+
+        /* Animation for splash screen text */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .splash-text {
+            animation: pulse 2s infinite alternate;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <p class="text-white text-3xl md:text-5xl font-bold mb-8 splash-text">مرحباً بك في صفحة آلُــــعـــرآبـــ</p>
+        <button id="enter-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+            الدخول إلى الصفحة
+        </button>
+    </div>
 
     <!-- Video Background -->
     <video id="background-video" autoplay loop muted playsinline class="video-background">
@@ -174,7 +234,7 @@
     </video>
 
     <!-- Settings Button -->
-    <button id="settings-btn" class="settings-button">
+    <button id="settings-btn" class="settings-button hidden"> <!-- Hidden initially -->
         <!-- SVG for a gear icon (settings) -->
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.22a2 2 0 0 0 .73 2.73l.09.09a2 2 0 0 1 0 2.83l-.09.09a2 2 0 0 0-.73 2.73l.78 1.22a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.22a2 2 0 0 0-.73-2.73l-.09-.09a2 2 0 0 1 0-2.83l.09-.09a2 2 0 0 0 .73-2.73l-.78-1.22a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
@@ -195,7 +255,7 @@
     </div>
 
     <!-- Main Content Wrapper (centered by body's flexbox) -->
-    <div id="main-content-wrapper" class="flex flex-col items-center justify-center p-4 w-full h-full">
+    <div id="main-content-wrapper" class="flex flex-col items-center justify-center p-4 w-full h-full hidden"> <!-- Hidden initially -->
 
         <!-- Profile Card Content -->
         <div id="profile-card" class="profile-content-container max-w-sm">
@@ -247,7 +307,7 @@
     </div>
 
     <!-- Background Music -->
-    <audio id="background-music" autoplay loop>
+    <audio id="background-music" loop> <!-- Removed autoplay from here, will play on button click -->
         <source src="https://k.top4top.io/m_3451qxti51.mp3" type="audio/mpeg">
         متصفحك لا يدعم تشغيل الصوت.
     </audio>
@@ -256,6 +316,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- Elements References ---
+            const splashScreen = document.getElementById('splash-screen');
+            const enterBtn = document.getElementById('enter-btn');
             const dynamicPhraseElement = document.getElementById('dynamic-phrase');
             const changePhraseButton = document.getElementById('change-phrase-btn');
             const audio = document.getElementById('background-music');
@@ -266,7 +328,7 @@
             const mainContentWrapper = document.getElementById('main-content-wrapper');
             const viewerCountText = document.getElementById('viewer-count-text');
             const viewerNumberSpan = document.getElementById('viewer-number');
-            const backgroundVideo = document.getElementById('background-video'); // Reference to the video element
+            const backgroundVideo = document.getElementById('background-video');
 
             // New element references for individual toggles
             const profileCard = document.getElementById('profile-card');
@@ -274,7 +336,7 @@
             const toggleProfileBtn = document.getElementById('toggle-profile-btn');
             const togglePhrasesBtn = document.getElementById('toggle-phrases-btn');
             const toggleViewersBtn = document.getElementById('toggle-viewers-btn');
-            const changeBackgroundBtn = document.getElementById('change-background-btn'); // Reference for new button
+            const changeBackgroundBtn = document.getElementById('change-background-btn');
 
             // --- Phrases Array ---
             const phrases = [
@@ -287,8 +349,7 @@
                 "يؤلمني شيء لا أعرفه ربما وداع قديم لم أبكيه"
             ];
             let currentPhraseIndex = 0;
-            let isContentVisible = true; // State for 'الشاشة الخالية'
-            // States for individual sections
+            let isContentVisible = true;
             let isProfileVisible = true;
             let isPhrasesVisible = true;
             let isViewersVisible = true;
@@ -303,62 +364,28 @@
                 "https://f.top4top.io/m_34510i14s1.mp4",
                 "https://j.top4top.io/m_34517zw6x4.mp4"
             ];
-            let currentVideoIndex = 0; // Start with the first video in the array
+            let currentVideoIndex = 0;
 
             // --- Viewer Count Logic ---
             const VIEWER_COUNT_KEY = 'viewerCount';
-            const LAST_UPDATE_TIME_KEY = 'lastUpdateTime';
             const INITIAL_VIEWER_COUNT = 5670;
-            const INCREMENT_AMOUNT = 50;
-            const INCREMENT_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
-
             let currentViewerCount;
-            let lastUpdateTime;
 
-            // Initialize viewer count and last update time
+            // Initialize viewer count (reads from localStorage or sets initial)
             function initializeViewerCount() {
                 const savedCount = localStorage.getItem(VIEWER_COUNT_KEY);
-                const savedTime = localStorage.getItem(LAST_UPDATE_TIME_KEY);
-                const now = Date.now();
-
-                if (savedCount && savedTime) {
-                    currentViewerCount = parseInt(savedCount, 10);
-                    lastUpdateTime = parseInt(savedTime, 10);
-
-                    // Calculate increments based on time passed since last update
-                    const timeDifference = now - lastUpdateTime;
-                    const intervalsPassed = Math.floor(timeDifference / INCREMENT_INTERVAL_MS);
-
-                    if (intervalsPassed > 0) {
-                        currentViewerCount += intervalsPassed * INCREMENT_AMOUNT;
-                        lastUpdateTime = now; // Update last update time to now
-                        saveViewerCount();
-                    }
-                } else {
-                    currentViewerCount = INITIAL_VIEWER_COUNT;
-                    lastUpdateTime = now;
-                    saveViewerCount();
-                }
+                currentViewerCount = savedCount ? parseInt(savedCount, 10) : INITIAL_VIEWER_COUNT;
                 updateViewerCountDisplay();
             }
 
-            // Save viewer count and last update time to local storage
+            // Save viewer count to local storage
             function saveViewerCount() {
                 localStorage.setItem(VIEWER_COUNT_KEY, currentViewerCount);
-                localStorage.setItem(LAST_UPDATE_TIME_KEY, lastUpdateTime);
             }
 
             // Update the displayed viewer count
             function updateViewerCountDisplay() {
-                viewerNumberSpan.textContent = currentViewerCount.toLocaleString('ar-EG'); // Update only the number span
-            }
-
-            // Increment viewer count automatically
-            function autoIncrementViewerCount() {
-                currentViewerCount += INCREMENT_AMOUNT;
-                lastUpdateTime = Date.now();
-                saveViewerCount();
-                updateViewerCountDisplay();
+                viewerNumberSpan.textContent = currentViewerCount.toLocaleString('ar-EG');
             }
 
             // --- Functions ---
@@ -366,22 +393,18 @@
                 dynamicPhraseElement.textContent = phrases[currentPhraseIndex];
             }
 
-            // Function to change the background video
             function changeBackgroundVideo() {
                 currentVideoIndex = (currentVideoIndex + 1) % backgroundVideos.length;
                 backgroundVideo.src = backgroundVideos[currentVideoIndex];
-                backgroundVideo.load(); // Reload the video to apply the new source
+                backgroundVideo.load();
                 backgroundVideo.play().catch(e => console.error("Video play failed after source change:", e));
-                settingsDropdown.classList.add('hidden'); // Hide dropdown after selection
+                settingsDropdown.classList.add('hidden');
             }
 
-
-            // Function to toggle settings dropdown visibility
             function toggleSettingsDropdown() {
                 settingsDropdown.classList.toggle('hidden');
             }
 
-            // Function to toggle music play/pause
             function toggleMusic() {
                 if (audio.paused) {
                     audio.play().catch(e => console.error("Audio play failed:", e));
@@ -390,18 +413,16 @@
                     audio.pause();
                     toggleMusicBtn.textContent = 'تشغيل الموسيقى';
                 }
-                settingsDropdown.classList.add('hidden'); // Hide dropdown after selection
+                settingsDropdown.classList.add('hidden');
             }
 
-            // Function to toggle all content visible (for 'الشاشة الخالية' option)
             function toggleContent() {
-                // If content is currently visible, hide everything
                 if (isContentVisible) {
-                    mainContentWrapper.classList.add('hidden'); // Hide the main wrapper
+                    mainContentWrapper.classList.add('hidden');
                     toggleContentBtn.textContent = 'إظهار المحتوى';
                     isContentVisible = false;
-                } else { // If content is currently hidden, show everything
-                    mainContentWrapper.classList.remove('hidden'); // Show the main wrapper
+                } else {
+                    mainContentWrapper.classList.remove('hidden');
                     // Ensure all individual components are also visible when main wrapper is shown
                     profileCard.classList.remove('hidden');
                     phraseCard.classList.remove('hidden');
@@ -418,12 +439,11 @@
                     toggleContentBtn.textContent = 'الشاشة الخالية';
                     isContentVisible = true;
                 }
-                settingsDropdown.classList.add('hidden'); // Hide dropdown after selection
+                settingsDropdown.classList.add('hidden');
             }
 
-            // Functions to toggle individual sections
             function toggleProfile() {
-                if (isContentVisible) { // Only toggle if main content wrapper is visible
+                if (isContentVisible) {
                     profileCard.classList.toggle('hidden');
                     isProfileVisible = !isProfileVisible;
                     toggleProfileBtn.textContent = isProfileVisible ? 'إخفاء البروفايل' : 'إظهار البروفايل';
@@ -432,7 +452,7 @@
             }
 
             function togglePhrases() {
-                if (isContentVisible) { // Only toggle if main content wrapper is visible
+                if (isContentVisible) {
                     phraseCard.classList.toggle('hidden');
                     isPhrasesVisible = !isPhrasesVisible;
                     togglePhrasesBtn.textContent = isPhrasesVisible ? 'إخفاء العبارات' : 'إظهار العبارات';
@@ -441,7 +461,7 @@
             }
 
             function toggleViewers() {
-                if (isContentVisible) { // Only toggle if main content wrapper is visible
+                if (isContentVisible) {
                     viewerCountText.classList.toggle('hidden');
                     isViewersVisible = !isViewersVisible;
                     toggleViewersBtn.textContent = isViewersVisible ? 'إخفاء المشاهدات' : 'إظهار المشاهدات';
@@ -450,24 +470,30 @@
             }
 
             // --- Event Listeners ---
-            // Initial phrase setup
-            updatePhrase();
-
-            // Initialize and start viewer count
+            // Initialize viewer count
             initializeViewerCount();
-            // Set interval for automatic increment
-            setInterval(autoIncrementViewerCount, INCREMENT_INTERVAL_MS);
 
-            // Attempt to play audio on initial load (may be blocked by browsers)
-            audio.play().catch(e => console.log("Audio autoplay blocked, will try again on user interaction.", e));
+            // Handle 'Enter' button click on splash screen
+            enterBtn.addEventListener('click', function() {
+                splashScreen.classList.add('hidden'); // Hide splash screen
+                mainContentWrapper.classList.remove('hidden'); // Show main content
+                settingsBtn.classList.remove('hidden'); // Show settings button
+
+                // Play music on user interaction
+                audio.play().catch(e => console.error("Audio play failed on enter:", e));
+
+                // Increment viewer count for this visit
+                currentViewerCount++;
+                saveViewerCount();
+                updateViewerCountDisplay();
+
+                updatePhrase(); // Set initial phrase after content is visible
+            });
 
             // Change phrase button click
             changePhraseButton.addEventListener('click', function() {
                 currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
                 updatePhrase();
-                if (audio.paused) { // Try to play music if paused on user interaction
-                    audio.play().catch(e => console.error("Audio play failed on phrase change:", e));
-                }
             });
 
             // Settings button click to open/close dropdown
