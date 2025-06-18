@@ -300,6 +300,7 @@
             <li id="toggle-profile-btn">إخفاء البروفايل</li>
             <li id="toggle-phrases-btn">إخفاء العبارات</li>
             <li id="toggle-viewers-btn">إخفاء المشاهدات</li>
+            <li id="photography-mode-btn">وضع التصوير</li> <!-- New feature: Photography Mode -->
         </ul>
     </div>
 
@@ -386,6 +387,7 @@
             const togglePhrasesBtn = document.getElementById('toggle-phrases-btn');
             const toggleViewersBtn = document.getElementById('toggle-viewers-btn');
             const changeBackgroundBtn = document.getElementById('change-background-btn');
+            const photographyModeBtn = document.getElementById('photography-mode-btn'); // Reference for new button
 
             // --- Phrases Array ---
             const phrases = [
@@ -417,13 +419,31 @@
 
             // --- Viewer Count Logic ---
             const VIEWER_COUNT_KEY = 'viewerCount';
+            const LAST_UPDATE_TIME_KEY = 'lastViewerUpdateTime'; // Key for storing last update timestamp
             const INITIAL_VIEWER_COUNT = 5670;
+            const UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
             let currentViewerCount;
 
             // Initialize viewer count (reads from localStorage or sets initial)
             function initializeViewerCount() {
                 const savedCount = localStorage.getItem(VIEWER_COUNT_KEY);
+                const lastUpdateTime = localStorage.getItem(LAST_UPDATE_TIME_KEY);
+                const currentTime = new Date().getTime();
+
                 currentViewerCount = savedCount ? parseInt(savedCount, 10) : INITIAL_VIEWER_COUNT;
+
+                if (lastUpdateTime) {
+                    const timeDifference = currentTime - parseInt(lastUpdateTime, 10);
+                    if (timeDifference >= UPDATE_INTERVAL_MS) {
+                        // If 6 hours or more have passed, increment and update timestamp
+                        currentViewerCount += 100;
+                        localStorage.setItem(LAST_UPDATE_TIME_KEY, currentTime.toString());
+                    }
+                } else {
+                    // First visit or cleared storage, set initial time
+                    localStorage.setItem(LAST_UPDATE_TIME_KEY, currentTime.toString());
+                }
+                saveViewerCount(); // Ensure the potentially updated count is saved
                 updateViewerCountDisplay();
             }
 
@@ -520,8 +540,13 @@
                 settingsDropdown.classList.add('hidden');
             }
 
+            function redirectToPhotographyMode() {
+                window.location.href = 'https://arc56a.github.io/comuser/';
+                settingsDropdown.classList.add('hidden'); // Close dropdown after redirect
+            }
+
             // --- Event Listeners ---
-            // Initialize viewer count
+            // Initialize viewer count and check for time-based increment
             initializeViewerCount();
 
             // Handle 'Enter' button click on splash screen
@@ -534,7 +559,8 @@
                 // Play music on user interaction
                 audio.play().catch(e => console.error("Audio play failed on enter:", e));
 
-                // Increment viewer count for this visit
+                // Increment viewer count for this specific visit (once per session after splash)
+                // This is separate from the 6-hour increment
                 currentViewerCount++;
                 saveViewerCount();
                 updateViewerCountDisplay();
@@ -564,6 +590,9 @@
 
             // New background change button click
             changeBackgroundBtn.addEventListener('click', changeBackgroundVideo);
+
+            // New: Photography Mode button click
+            photographyModeBtn.addEventListener('click', redirectToPhotographyMode);
 
             // Close dropdown if clicked outside
             document.addEventListener('click', function(event) {
